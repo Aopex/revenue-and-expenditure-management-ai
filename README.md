@@ -1,20 +1,18 @@
-# 收支管理系统（Revenue & Expenditure Management）
+# AI 增强版收支管理系统（AI-Ledger）
 
-一个面向个人与小型团队的全栈收支管理平台，集账单录入、统计分析、账单导入、周期任务与可视化面板于一体。项目提供一键启动脚本，可在几分钟内搭建本地开发环境。
+一个集成了 **LLM 智能分类** 的全栈个人财务管理平台。在提供账单录入、可视化统计、账单自动导入及周期任务等核心功能的基础上，引入大模型预测引擎，实现金融流水的精准自动化归档。项目提供一键启动脚本，可快速搭建包含 AI 微服务在内的完整环境。
 
-## 技术栈
 - **前端**：Vue 3 · Vite · Element Plus · Vue Router · ECharts · Day.js
-- **后端**：Node.js · Express · SQLite · JWT · bcryptjs
-- **工具**：concurrently、nodemon、npm 镜像自动切换脚本
+- **后端 (业务)**：Node.js · Express · SQLite · JWT · bcryptjs
+- **后端 (AI服务)**：Python 3.10+ · FastAPI · Pydantic · OpenAI SDK (兼容 SiliconFlow)
+- **工具**：concurrently、nodemon、Python venv 自动环境初始化脚本
 
 ## 目录结构
 ```
-revenue-and-expenditure-management/
-├─ backend/          # Node.js + Express 服务端
-├─ front/            # Vue3 + Vite 单页应用
-├─ start.bat         # Windows 一键启动脚本（保留现有依赖）
-├─ dev.bat           # Windows 一键部署脚本（强制重新安装依赖）
-├─ dev.sh            # (可选) Unix 启动脚本，如未使用可忽略
+├─ backend/          # Node.js + Express 业务逻辑服务端
+├─ front/            # Vue3 + Vite 前端单页应用
+├─ llm_service/      # FastAPI + Qwen 大模型推理微服务
+├─ start.bat         # Windows 一键全栈启动脚本（含 Python 自动配环境）
 └─ README.md         # 本文件
 ```
 
@@ -25,15 +23,19 @@ revenue-and-expenditure-management/
   - 本月收入、支出与结余概览卡片；
   - 周/月/年收支趋势（折线 + 柱状组合图）；
   - 分类占比环形图，支持自定义渐变色与月份切换。
-- 账单导入：拖拽支付宝/微信 CSV，自动分类、去重并显示导入结果。
+- **AI 智能分类**：集成 Qwen 大模型推理引擎，支持导入账单时“一键智能预测”，相比传统关键词匹配，分类准确度大幅提升。
+- **账单导入**：支持支付宝/微信 CSV/XLSX，具备自动降级策略（AI 不可用时自动切换至本地正则算法）。
 - 周期任务：配置工资、会员等固定周期，启动时自动生成到期账单。
 - 前端体验：Element 消息提示、路由守卫、响应式布局、一键退出登录按钮。
 
 ## 快速体验（Windows）
-1. **首次或依赖异常时**：双击 `dev.bat`，脚本会删除三个 `node_modules` 文件夹并重新安装、初始化数据库，然后同时启动前后端。
-2. **日常开发**：双击 `start.bat`，脚本会检查缺失依赖后直接并发启动。
-3. 后端地址默认为 `http://localhost:3000`，前端地址默认为 `http://localhost:5173`。
-4. 如果 `dev.bat` 中的 `concurrently` 报错，脚本会保留命令行窗口并提示查看日志。
+1. **环境准备**：确保本地已安装 Node.js 与 Python 3.10+。
+2. **一键启动**：双击 `start.bat`。脚本会自动完成以下动作：
+   - 检查并安装 Node 前后端依赖。
+   - **自动创建 Python 虚拟环境**并安装 AI 模型所需的全部 pip 包。
+   - 并发启动后端业务 (Port 3000)、前端界面 (Port 5173) 及 AI 分类服务 (Port 8000)。
+3. **AI 配置**：如需开启智能分类，请在 `llm_service/main.py` 中配置您的 `SILICONFLOW_API_KEY`。
+4. **访问系统**：前端地址默认为 `http://localhost:5173`。如果在 `Concurrent` 启动过程中有服务报错，请检查控制台日志。
 
 ## 手动启动
 ```bash
@@ -98,6 +100,6 @@ npm run dev       # Vite，默认 5173 端口
 | front | `npm run build` | 生产构建 |
 
 ## 规划中的增强
-1. 语音输入记账、AI 分类推荐。
+1. 语音输入记账模块开发。
 2. WebHook / 邮件提醒周期扣费。
 3. 单元测试与 e2e 场景覆盖。
